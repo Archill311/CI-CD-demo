@@ -1,33 +1,17 @@
-name: GitHub Actions Build and Deploy Demo
+name: Deployment
 on:
   push:
     branches:
-      - main
+      - master
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
       with:
-        node-version: 20
-        
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Install and Build
-      run: |
-        npm install
-        npm run build
-        
-    - name: Deploy
-      uses: JamesIves/github-pages-deploy-action@releases/v3
-      with:
-        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        BRANCH: gh-pages
-        FOLDER: build
-
+        node-version: ${{ matrix.node-version }}
     - name: Cache node modules
       uses: actions/cache@v1
       with:
@@ -37,4 +21,12 @@ jobs:
           ${{ runner.OS }}-build-${{ env.cache-name }}-
           ${{ runner.OS }}-build-
           ${{ runner.OS }}-
-
+    - name: Install Packages
+      run: npm install
+    - name: Build page
+      run: npm run build
+    - name: Deploy to gh-pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+        publish_dir: ./build
